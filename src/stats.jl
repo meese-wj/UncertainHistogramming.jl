@@ -1,7 +1,21 @@
 
+"""
+    mean(::GaussianHistogram)
 
+First moment of the [`GaussianHistogram`](@ref).
+"""
 mean( hist::GaussianHistogram ) = moment(hist, FirstMoment)
+"""
+    var(::GaussianHistogram)
+
+Second cumulant of the [`GaussianHistogram`](@ref).
+"""
 var( hist::GaussianHistogram ) = moment(hist, SecondMoment) - mean(hist)^2
+"""
+    std(::GaussianHistogram)
+
+The standard deviation of the [`GaussianHistogram`](@ref).
+"""
 std( hist::GaussianHistogram ) = sqrt( var(hist) )
 
 """
