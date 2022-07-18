@@ -1,6 +1,7 @@
 module UncertainHistogramming
 
 import Base: eltype, push!, length
+import StaticArrays: MArray, @MArray
 import Statistics: mean, var, std
 import Measurements: Measurement, measurement
 include("Moments.jl")
@@ -22,10 +23,11 @@ construct(hist::ContinuousHistogram, x) = throw( MethodError(construct, hist, x)
 construct!(output, hist::ContinuousHistogram, x) = throw( MethodError(construct!, output, hist, x) )
 
 mutable struct GaussianHistogram{T <: Number}
+    moments::MArray{T, 4}
     values::Vector{T}
     errors::Vector{T}
 
-    GaussianHistogram{T}() where {T} = new( zeros(T, 0), zeros(T, 0) )
+    GaussianHistogram{T}() where {T} = new( @MArray zeros(T, 4), zeros(T, 0), zeros(T, 0) )
     GaussianHistogram(args...) = GaussianHistogram{Float64}(args...)
 end
 
