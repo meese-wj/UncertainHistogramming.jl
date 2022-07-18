@@ -123,6 +123,7 @@ julia> moment(hist, FourthMoment)
 3.0
 ```
 """
+moment
 
 for moment_t ∈ moment_list
     @eval Base.getindex(hist::GaussianHistogram, ::Type{$moment_t}) = hist.moments[ MomentIndex($moment_t) ]
