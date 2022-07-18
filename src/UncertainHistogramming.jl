@@ -1,6 +1,6 @@
 module UncertainHistogramming
 
-import Base: eltype, push!, length
+import Base: eltype, push!, length, getindex, setindex!, show
 import StaticArrays: MArray, @MArray
 import Statistics: mean, var, std
 import Measurements: Measurement, measurement
@@ -8,7 +8,7 @@ include("Moments.jl")
 
 export 
 # Base overloads
-       push!, eltype, length,
+       push!, eltype, length, getindex, setindex!, show,
 # Statistics overloads
        mean, var, std,
 # Measurements.jl overloads
@@ -23,11 +23,11 @@ construct(hist::ContinuousHistogram, x) = throw( MethodError(construct, hist, x)
 construct!(output, hist::ContinuousHistogram, x) = throw( MethodError(construct!, output, hist, x) )
 
 mutable struct GaussianHistogram{T <: Number}
-    moments::MArray{T, 4}
+    moments::Vector{T}
     values::Vector{T}
     errors::Vector{T}
 
-    GaussianHistogram{T}() where {T} = new( @MArray zeros(T, 4), zeros(T, 0), zeros(T, 0) )
+    GaussianHistogram{T}() where {T} = new( ( zeros(T, 4) ), zeros(T, 0), zeros(T, 0) )
     GaussianHistogram(args...) = GaussianHistogram{Float64}(args...)
 end
 
@@ -37,11 +37,12 @@ gaussian(x::AbstractArray, μ, σ) = broadcast( y -> gaussian(y, μ, σ), x )
 eltype(::GaussianHistogram{T}) where {T} = T
 length(hist::GaussianHistogram) = length(hist.values)
 
-mean( hist::GaussianHistogram ) = mean(hist.values)
-var( hist::GaussianHistogram ) = mean(x -> x^2, hist.errors) + var(hist.values, corrected = false)
+mean( hist::GaussianHistogram ) = moment(hist, FirstMoment)
+var( hist::GaussianHistogram ) = moment(hist, SecondMoment) - mean(hist)^2
 std( hist::GaussianHistogram ) = sqrt( var(hist) )
 
 function push!( hist::GaussianHistogram, tup::Tuple{Number, Number} )
+    _update_moments!(hist, tup...)
     push!(hist.values, tup[1])
     push!(hist.errors, tup[2])
     return hist
@@ -74,21 +75,13 @@ function construct(hist::GaussianHistogram, x)
     construct!(output, hist, x)
 end
 
-@show typeof(FirstMoment)
+for moment_t ∈ moment_list
+    @eval Base.getindex(hist::GaussianHistogram, ::Type{$moment_t}) = hist.moments[ MomentIndex($moment_t) ]
+    @eval Base.setindex!(hist::GaussianHistogram{T}, val::S, ::Type{$moment_t}) where {T, S} = hist.moments[ MomentIndex($moment_t) ] = convert(T, val)
+    @eval moment(hist::GaussianHistogram, ::Type{$moment_t}) = hist[$moment_t]
+end
+
 measurement(hist::GaussianHistogram) = measurement(mean(hist), std(hist))
-
-moment(hist::GaussianHistogram, ::Type{FirstMoment}) = mean(hist)
-function _moment(hist::GaussianHistogram, moment_t)
-    val = zero(eltype(hist))
-    for (μ, σ) ∈ zip(hist.values, hist.errors)
-        val += moment(GaussianDistribution, moment_t, μ, σ)
-    end
-    return val / length(hist)
-end
-
-for moment_t ∈ (:SecondMoment, :ThirdMoment, :FourthMoment)
-    @eval moment(hist::GaussianHistogram, ::Type{$moment_t}) = _moment(hist, $moment_t)
-end
 
 """
     skewness(::GaussianHistogram)
@@ -121,6 +114,63 @@ function kurtosis(hist::GaussianHistogram, excess = false)
     return excess ? val - convert(typeof(val), 3) : val
 end
 
+"""
+    _update_moments!(::GaussianHistogram, μ, σ)
 
+Update the the non-central moments of the [`GaussianHistogram`](@ref) _online_ with
+the new value-error pair `(μ, σ)`. This is done because each is non-central moment
+is the mean non-central moments of each [`GaussianDistribution`](@ref).
+"""
+function _update_moments!(hist::GaussianHistogram, μ, σ)
+    _update_moment!(hist, FirstMoment, μ, σ)
+    _update_moment!(hist, SecondMoment, μ, σ)
+    _update_moment!(hist, ThirdMoment, μ, σ)
+    _update_moment!(hist, FourthMoment, μ, σ)
+    return nothing
+end
+
+"""
+    _update_moment!(::GaussianHistogram, moment_t, μ, σ)
+
+Update the [`GaussianHistogram`](@ref)'s `moment_t` using an [`_online_mean`](@ref)
+with the inclusion of the value-error pair `(μ, σ)`.
+"""
+@inline function _update_moment!(hist::GaussianHistogram, moment_t, μ, σ) 
+    hist[moment_t] = _online_mean( moment(GaussianDistribution, moment_t, μ, σ), moment(hist, moment_t), length(hist) )
+    return nothing
+end
+
+@doc raw"""
+    _online_mean(xnew, μold, nold)
+
+Update the old mean `μold` over `nold` elements with the new data point `xnew`.
+This function implements
+
+```math
+\mu_{n+1} = \mu_n + \frac{x_{n+1} - \mu_{n}}{n+1}.
+```
+"""
+@inline _online_mean(xnew, μold, nold) = μold + (xnew - μold) / (nold + 1)
+
+"""
+    show([::IO,] ::GaussianHistogram)
+    show(::GaussianHistogram)
+
+`print` the relevant information for a [`GaussianHistogram`](@ref).
+"""
+function show(io::IO, hist::GaussianHistogram)
+    println(io, "GaussianHistogram{$(eltype(hist))}:")
+    println(io, "  length  = $(length(hist))")
+    momstring = ""
+    for mom ∈ hist.moments momstring *= "$mom  " end
+    println(io, "  moments = $(momstring)")
+    println(io, "")
+    println(io, "  Statistics")
+    println(io, "    mean        = $(mean(hist))")
+    println(io, "    variance    = $(var(hist))")
+    println(io, "    skewness    = $(skewness(hist))")
+    println(io, "    kurtosis    = $(kurtosis(hist))")
+end
+show(hist::GaussianHistogram) = show(stdout, hist)
 
 end

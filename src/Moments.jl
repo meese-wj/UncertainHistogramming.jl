@@ -1,12 +1,15 @@
+import StaticArrays: @SArray
 
 export moment, Moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
        ContinuousDistribution, GaussianDistribution, skewness, kurtosis
 
 abstract type Moment end
-struct FirstMoment <: Moment end
-struct SecondMoment <: Moment end
-struct ThirdMoment <: Moment end
-struct FourthMoment <: Moment end
+MomentIndex(::Moment) = -1
+moment_list = @SArray [ :FirstMoment, :SecondMoment, :ThirdMoment, :FourthMoment ]
+for (idx, moment_t) ∈ enumerate(moment_list)
+    @eval struct $moment_t <: Moment end
+    @eval MomentIndex(::Type{$moment_t}) = $idx
+end
 
 abstract type ContinuousDistribution end
 struct GaussianDistribution <: ContinuousDistribution end
