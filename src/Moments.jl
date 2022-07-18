@@ -1,7 +1,3 @@
-import StaticArrays: @SArray
-
-export moment, Moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
-       ContinuousDistribution, GaussianDistribution, skewness, kurtosis
 
 abstract type Moment end
 MomentIndex(::Moment) = -1
@@ -32,7 +28,7 @@ end
 
 skewness(::Type{GaussianDistribution}, μ, σ) = zero(μ)
 
-function kurtosis(::Type{GaussianDistribution}, μ, σ)
+function kurtosis(::Type{GaussianDistribution}, μ, σ, excess = true)
     μ, σ = promote(μ, σ)
-    return convert(typeof(μ), 3)
+    return ifelse(excess, zero(μ), convert(typeof(μ), 3))
 end

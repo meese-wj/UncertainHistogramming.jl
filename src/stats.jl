@@ -1,3 +1,5 @@
+
+
 mean( hist::GaussianHistogram ) = moment(hist, FirstMoment)
 var( hist::GaussianHistogram ) = moment(hist, SecondMoment) - mean(hist)^2
 std( hist::GaussianHistogram ) = sqrt( var(hist) )
@@ -17,15 +19,15 @@ function skewness(hist::GaussianHistogram)
 end
 
 """
-    kurtosis(::GaussianHistogram [, excess = false ])
+    kurtosis(::GaussianHistogram [, excess = true ])
 
-[Pearson kurtosis](https://en.wikipedia.org/wiki/Kurtosis?oldformat=true#Pearson_moments) of a [`GaussianHistogram`](@ref).
+[Pearson (`excess`) kurtosis](https://en.wikipedia.org/wiki/Kurtosis?oldformat=true#Pearson_moments) of a [`GaussianHistogram`](@ref).
 
 !!! note
-    For comparison purposes, this `kurtosis` definition, with `excess == false`, applied to a 
-    Gaussian distribution yields `3`. If `excess == true`, then the `kurtosis` vanishes for a Gaussian.
+    For comparison purposes, this `kurtosis` definition, with `excess == true`, applied to a 
+    Gaussian distribution yields `0`. If `excess == false`, then the `kurtosis` for a Gaussian is 3.
 """
-function kurtosis(hist::GaussianHistogram, excess = false)
+function kurtosis(hist::GaussianHistogram, excess = true)
     μ = mean(hist)
     val =  moment(hist, FourthMoment) - 4 * μ * moment(hist, ThirdMoment)
     val += 6 * μ^2 * moment(hist, SecondMoment) - 3 * μ^4

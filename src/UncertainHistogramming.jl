@@ -1,8 +1,9 @@
 module UncertainHistogramming
 
 import Base: eltype, push!, length, getindex, setindex!, show
-import StaticArrays: MArray, @MArray
+import StaticArrays: MArray, @MArray, @SArray
 import Statistics: mean, var, std
+import StatsBase: skewness, kurtosis
 import Measurements: Measurement, measurement
 
 include("Moments.jl")
@@ -10,12 +11,12 @@ include("Moments.jl")
 export 
 # Base overloads in ./util.jl
        push!, eltype, length, getindex, setindex!, show,
-# Statistics overloads in ./stats.jl
-       mean, var, std,
+# Statistics and StatsBase overloads in ./stats.jl
+       mean, var, std, skewness, kurtosis,
 # Measurements.jl overloads
        measurement,
 # ./Moments.jl overloads
-       moment, skewness, kurtosis,
+       moment, 
 # UncertainHistogramming exports
        ContinuousHistogram, GaussianHistogram, gaussian
 
