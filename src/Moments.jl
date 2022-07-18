@@ -1,7 +1,6 @@
-module Moments
 
 export moment, Moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
-       ContinuousDistribution, GaussianDistribution
+       ContinuousDistribution, GaussianDistribution, skewness, kurtosis
 
 abstract type Moment end
 struct FirstMoment <: Moment end
@@ -28,14 +27,9 @@ function moment(::Type{GaussianDistribution}, ::Type{FourthMoment}, μ, σ)
     return μ^4 + 6 * μ^2 * σ^2 + 3 * σ^4
 end
 
-function skewness(::Type{GaussianDistribution}, μ, σ)
-    μ, σ = promote(μ, σ)
-    return zero(μ)
-end
+skewness(::Type{GaussianDistribution}, μ, σ) = zero(μ)
 
 function kurtosis(::Type{GaussianDistribution}, μ, σ)
     μ, σ = promote(μ, σ)
     return convert(typeof(μ), 3)
-end
-
 end

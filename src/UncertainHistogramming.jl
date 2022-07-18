@@ -3,9 +3,7 @@ module UncertainHistogramming
 import Base: eltype, push!, length
 import Statistics: mean, var, std
 import Measurements: Measurement, measurement
-import Moments: GaussianDistribution,
-                moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment
-                skewness, kurtosis
+include("Moments.jl")
 
 export 
 # Base overloads
@@ -74,6 +72,7 @@ function construct(hist::GaussianHistogram, x)
     construct!(output, hist, x)
 end
 
+@show typeof(FirstMoment)
 measurement(hist::GaussianHistogram) = measurement(mean(hist), std(hist))
 
 moment(hist::GaussianHistogram, ::Type{FirstMoment}) = mean(hist)
