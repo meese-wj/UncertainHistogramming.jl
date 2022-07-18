@@ -16,7 +16,7 @@ export
 # Measurements.jl overloads
        measurement,
 # ./Moments.jl overloads
-       moment, 
+       moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
 # UncertainHistogramming exports
        ContinuousHistogram, GaussianHistogram, gaussian
 
