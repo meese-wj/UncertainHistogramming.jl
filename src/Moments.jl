@@ -5,7 +5,7 @@ export moment, Moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
 
 abstract type Moment end
 MomentIndex(::Moment) = -1
-moment_list = @SArray [ :FirstMoment, :SecondMoment, :ThirdMoment, :FourthMoment ]
+const moment_list = @SArray [ :FirstMoment, :SecondMoment, :ThirdMoment, :FourthMoment ]
 for (idx, moment_t) ∈ enumerate(moment_list)
     @eval struct $moment_t <: Moment end
     @eval MomentIndex(::Type{$moment_t}) = $idx
