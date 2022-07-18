@@ -80,7 +80,7 @@ moment(hist::GaussianHistogram, ::Type{FirstMoment}) = mean(hist)
 function _moment(hist::GaussianHistogram, moment_t)
     val = zero(eltype(hist))
     for (μ, σ) ∈ zip(hist.values, hist.errors)
-        val += moment(GaussianDistribution, moment_t)
+        val += moment(GaussianDistribution, moment_t, μ, σ)
     end
     return val / length(hist)
 end
