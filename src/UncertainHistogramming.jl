@@ -3,6 +3,9 @@ module UncertainHistogramming
 import Base: eltype, push!, length
 import Statistics: mean, var, std
 import Measurements: Measurement, measurement
+import Moments: GaussianDistribution,
+                moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment
+                skewness, kurtosis
 
 export 
 # Base overloads
@@ -11,6 +14,8 @@ export
        mean, var, std,
 # Measurements.jl overloads
        measurement,
+# ./Moments.jl overloads
+       moment, skewness, kurtosis,
 # UncertainHistogramming exports
        ContinuousHistogram, GaussianHistogram, gaussian
 
@@ -70,5 +75,51 @@ function construct(hist::GaussianHistogram, x)
 end
 
 measurement(hist::GaussianHistogram) = measurement(mean(hist), std(hist))
+
+moment(hist::GaussianHistogram, ::Type{FirstMoment}) = mean(hist)
+function _moment(hist::GaussianHistogram, moment_t)
+    val = zero(eltype(hist))
+    for (μ, σ) ∈ zip(hist.values, hist.errors)
+        val += moment(GaussianDistribution, moment_t)
+    end
+    return val / length(hist)
+end
+
+for moment_t ∈ (:SecondMoment, :ThirdMoment, :FourthMoment)
+    @eval moment(hist::GaussianHistogram, ::Type{$moment_t}) = _moment(hist, $moment_t)
+end
+
+"""
+    skewness(::GaussianHistogram)
+
+[Fisher's skewness](https://en.wikipedia.org/wiki/Skewness?oldformat=true#Fisher's_moment_coefficient_of_skewness) of a [`GaussianHistogram`](@ref).
+
+!!! note
+    For comparison purposes, this `skewness` definition applied to a Gaussian distribution yields identically zero.
+"""
+function skewness(hist::GaussianHistogram)
+    μ = mean(hist)
+    val =  moment(hist, ThirdMoment) - 3 * μ * moment(hist, SecondMoment) + 2 * μ^3
+    return val / std(hist)^3
+end
+
+"""
+    kurtosis(::GaussianHistogram [, excess = false ])
+
+[Pearson kurtosis](https://en.wikipedia.org/wiki/Kurtosis?oldformat=true#Pearson_moments) of a [`GaussianHistogram`](@ref).
+
+!!! note
+    For comparison purposes, this `kurtosis` definition, with `excess == false`, applied to a 
+    Gaussian distribution yields `3`. If `excess == true`, then the `kurtosis` vanishes for a Gaussian.
+"""
+function kurtosis(hist::GaussianHistogram, excess = false)
+    μ = mean(hist)
+    val =  moment(hist, FourthMoment) - 4 * μ * moment(hist, ThirdMoment)
+    val += 6 * μ^2 * moment(hist, SecondMoment) - 3 * μ^4
+    val /= var(hist)^2
+    return excess ? val - convert(typeof(val), 3) : val
+end
+
+
 
 end
