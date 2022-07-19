@@ -5,6 +5,7 @@ import StaticArrays: MArray, @MArray, @SArray
 import Statistics: mean, var, std
 import StatsBase: skewness, kurtosis
 import Measurements: Measurement, measurement
+using RecipesBase
 
 include("Moments.jl")
 
@@ -18,7 +19,10 @@ export
 # ./Moments.jl overloads
        moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
 # UncertainHistogramming exports
-       ContinuousHistogram, GaussianHistogram, gaussian
+       ContinuousHistogram, GaussianHistogram, 
+       gaussian, construct, construct!,
+# Visualization exports in ./visualization.jl
+       uncertainhistogram
 
 """
     abstract type ContinuousHistogram end
@@ -66,6 +70,7 @@ end
 
 include("util.jl")
 include("stats.jl")
+include("visualization.jl")
 
 """
     gaussian(::Number, μ, σ)
