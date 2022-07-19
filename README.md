@@ -8,6 +8,29 @@ An example application of the main `export`ed `abstract` `struct`, `ContinuousHi
 
 This package provides similar functionality to what is expected from [_kernel density estimation_ (KDE)](https://en.wikipedia.org/wiki/Kernel_density_estimation?oldformat=true), but here the data errors/uncertainties which act as the kernel bandwidths are all, in principle, different.
 
-### Disclaimer
+An example `GaussianHistogram <: ContinuousHistogram` can be `construct`ed from the following Julia code
 
-This package is currently being built and is likely to undergo serious changes in the next few weeks.  (Updated: July 15, 2022)
+```julia
+using Plots # One must Pkg.add this separately
+using UncertainHistogramming
+Plots.gr()  # Use GR to reproduce the plot exactly 
+
+# Create a list of (value, error)-tuples
+values_errs = [(-3.5, 0.5), (-1.5, 0.75),
+               (0, 0.25), (1.5, 0.75), 
+               (3.5, 0.5)]
+
+# Initialize the GaussianHistogram and 
+# push! the data into it
+hist = GaussianHistogram()
+push!(hist, values_errs)
+
+# Create an argument array to build the
+# ContinuousHistogram from 
+x = LinRange(-6, 6, 3000)
+
+# Plot using a User Recipe 
+# (thanks to RecipesBase.jl)
+plot(x, hist)
+```
+![Example GaussianHistogram](docs/src/assets/example_gaussian_histogram.png)

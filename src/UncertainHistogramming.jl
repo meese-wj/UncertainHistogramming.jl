@@ -20,9 +20,7 @@ export
        moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
 # UncertainHistogramming exports
        ContinuousHistogram, GaussianHistogram, 
-       gaussian, construct, construct!,
-# Visualization exports in ./visualization.jl
-       uncertainhistogram
+       gaussian, construct, construct!, kernel, val_err
 
 """
     abstract type ContinuousHistogram end
@@ -70,7 +68,7 @@ end
 
 include("util.jl")
 include("stats.jl")
-include("visualization.jl")
+include("plotrecipes.jl")
 
 """
     gaussian(::Number, μ, σ)
@@ -80,6 +78,9 @@ Calculate the normalized value of a Gaussian with mean μ and variance σ².
 """
 gaussian(x::Number, μ, σ) = exp( -0.5 * (x - μ)^2 / σ^2 ) / ( σ * sqrt(2π) )
 gaussian(x::AbstractArray, μ, σ) = broadcast( y -> gaussian(y, μ, σ), x )
+kernel(hist::GaussianHistogram, x::AbstractArray, data) where {T} = gaussian(x, data...) / length(hist)
+
+val_err(hist::GaussianHistogram, idx) = (hist.values[idx], hist.errors[idx])
 
 """
     construct!(output, ::GaussianHistogram, x)
@@ -89,9 +90,9 @@ Similar to [`construct`](@ref) but here, the `output` `Array` is modified in-pla
 function construct!(output, hist::GaussianHistogram, x)
     size(x) == size(output) ? nothing : ArgumentError("input and output vectors are of different sizes: $(size(x)) != $(size(output))")
     for (μ, σ) ∈ zip(hist.values, hist.errors)
-        @views output .+= gaussian(x, μ, σ)
+        @views output .+= kernel(hist, x, (μ, σ))
     end
-    return output ./ length(hist)
+    return output
 end
 
 """
