@@ -1,4 +1,3 @@
-import Base: eltype, push!, length, getindex, setindex!, show
 
 """
     eltype(::GaussianHistogram{T}) where {T} = Test
@@ -16,11 +15,15 @@ length(hist::GaussianHistogram) = length(hist.values)
 """
     push!(::GaussianHistogram, ::Tuple{Number, Number})
     push!(::GaussianHistogram, ::Measurement)
-    push!(::GaussianHistogram, ::Vector{Tuple{Number, Number}})
+    push!(::GaussianHistogram, ::AbstractVector)
     push!(::GaussianHistogram, ::Vector{Measurement})
 
 `Base` overload to introduce a new value-error pair into the [`GaussianHistogram`](@ref).
 This function also [`_update_moments!`](@ref) in an amortized way to add little overhead.
+
+!!! note
+    The `AbstractVector` dispatch is really only meant for `Vector{Tuple{Number, Number}}`; 
+    the latter of which contains no subtypes.
 """
 function push!( hist::GaussianHistogram, tup::Tuple{Number, Number} )
     _update_moments!(hist, tup...)
@@ -30,7 +33,7 @@ function push!( hist::GaussianHistogram, tup::Tuple{Number, Number} )
 end
 push!(hist::GaussianHistogram, meas::Measurement) = push!(hist, (meas.val, meas.err))
 
-function push!(hist::GaussianHistogram, tup_vec::Vector{Tuple{Number, Number}})
+function push!(hist::GaussianHistogram, tup_vec::AbstractVector)
     for tup ∈ tup_vec
         push!(hist, tup)
     end
