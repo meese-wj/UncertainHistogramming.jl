@@ -1,47 +1,47 @@
 
 """
-    mean(::GaussianHistogram)
+    mean(::ContinuousHistogram)
 
-First moment of the [`GaussianHistogram`](@ref).
+First moment of the [`ContinuousHistogram`](@ref).
 """
-mean( hist::GaussianHistogram ) = moment(hist, FirstMoment)
+mean( hist::ContinuousHistogram ) = moment(hist, FirstMoment)
 """
-    var(::GaussianHistogram)
+    var(::ContinuousHistogram)
 
-Second cumulant of the [`GaussianHistogram`](@ref).
+Second cumulant of the [`ContinuousHistogram`](@ref).
 """
-var( hist::GaussianHistogram ) = moment(hist, SecondMoment) - mean(hist)^2
+var( hist::ContinuousHistogram ) = moment(hist, SecondMoment) - mean(hist)^2
 """
-    std(::GaussianHistogram)
+    std(::ContinuousHistogram)
 
-The standard deviation of the [`GaussianHistogram`](@ref).
+The standard deviation of the [`ContinuousHistogram`](@ref).
 """
-std( hist::GaussianHistogram ) = sqrt( var(hist) )
+std( hist::ContinuousHistogram ) = sqrt( var(hist) )
 
 """
-    skewness(::GaussianHistogram)
+    skewness(::ContinuousHistogram)
 
-[Fisher's skewness](https://en.wikipedia.org/wiki/Skewness?oldformat=true#Fisher's_moment_coefficient_of_skewness) of a [`GaussianHistogram`](@ref).
+[Fisher's skewness](https://en.wikipedia.org/wiki/Skewness?oldformat=true#Fisher's_moment_coefficient_of_skewness) of a [`ContinuousHistogram`](@ref).
 
 !!! note
     For comparison purposes, this `skewness` definition applied to a Gaussian distribution yields identically zero.
 """
-function skewness(hist::GaussianHistogram)
+function skewness(hist::ContinuousHistogram)
     μ = mean(hist)
     val =  moment(hist, ThirdMoment) - 3 * μ * moment(hist, SecondMoment) + 2 * μ^3
     return val / std(hist)^3
 end
 
 """
-    kurtosis(::GaussianHistogram [, excess = true ])
+    kurtosis(::ContinuousHistogram [, excess = true ])
 
-[Pearson (`excess`) kurtosis](https://en.wikipedia.org/wiki/Kurtosis?oldformat=true#Pearson_moments) of a [`GaussianHistogram`](@ref).
+[Pearson (`excess`) kurtosis](https://en.wikipedia.org/wiki/Kurtosis?oldformat=true#Pearson_moments) of a [`ContinuousHistogram`](@ref).
 
 !!! note
     For comparison purposes, this `kurtosis` definition, with `excess == true`, applied to a 
     Gaussian distribution yields `0`. If `excess == false`, then the `kurtosis` for a Gaussian is 3.
 """
-function kurtosis(hist::GaussianHistogram, excess = true)
+function kurtosis(hist::ContinuousHistogram, excess = true)
     μ = mean(hist)
     val =  moment(hist, FourthMoment) - 4 * μ * moment(hist, ThirdMoment)
     val += 6 * μ^2 * moment(hist, SecondMoment) - 3 * μ^4
@@ -50,28 +50,28 @@ function kurtosis(hist::GaussianHistogram, excess = true)
 end
 
 """
-    _update_moments!(::GaussianHistogram, μ, σ)
+    _update_moments!(::ContinuousHistogram, val, err)
 
-Update the the non-central moments of the [`GaussianHistogram`](@ref) _online_ with
-the new value-error pair `(μ, σ)`. This is done because each is non-central moment
-is the mean non-central moments of each [`GaussianDistribution`](@ref).
+Update the the non-central moments of the [`ContinuousHistogram`](@ref) _online_ with
+the new value-error pair `(val, err)`. This is done because each is non-central moment
+is the mean non-central moments of each [`ContinuousDistribution`](@ref).
 """
-function _update_moments!(hist::GaussianHistogram, μ, σ)
-    _update_moment!(hist, FirstMoment, μ, σ)
-    _update_moment!(hist, SecondMoment, μ, σ)
-    _update_moment!(hist, ThirdMoment, μ, σ)
-    _update_moment!(hist, FourthMoment, μ, σ)
+function _update_moments!(hist::ContinuousHistogram, val, err)
+    _update_moment!(hist, FirstMoment, val, err)
+    _update_moment!(hist, SecondMoment, val, err)
+    _update_moment!(hist, ThirdMoment, val, err)
+    _update_moment!(hist, FourthMoment, val, err)
     return nothing
 end
 
 """
-    _update_moment!(::GaussianHistogram, moment_t, μ, σ)
+    _update_moment!(::ContinuousHistogram, moment_t, val, err)
 
-Update the [`GaussianHistogram`](@ref)'s `moment_t` using an [`_online_mean`](@ref)
-with the inclusion of the value-error pair `(μ, σ)`.
+Update the [`ContinuousHistogram`](@ref)'s `moment_t` using an [`_online_mean`](@ref)
+with the inclusion of the value-error pair `(val, err)`.
 """
-@inline function _update_moment!(hist::GaussianHistogram, moment_t, μ, σ) 
-    hist[moment_t] = _online_mean( moment(GaussianDistribution, moment_t, μ, σ), moment(hist, moment_t), length(hist) )
+@inline function _update_moment!(hist::ContinuousHistogram, moment_t, val, err) 
+    hist[moment_t] = _online_mean( moment(GaussianDistribution, moment_t, val, err), moment(hist, moment_t), length(hist) )
     return nothing
 end
 

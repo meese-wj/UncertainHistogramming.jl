@@ -7,8 +7,6 @@ import StatsBase: skewness, kurtosis
 import Measurements: Measurement, measurement
 using RecipesBase
 
-include("Moments/Moments.jl")
-
 export 
 # Base overloads in ./util.jl
        push!, eltype, length, getindex, setindex!, show,
@@ -18,9 +16,10 @@ export
        measurement,
 # ./Moments.jl overloads
        moment, FirstMoment, SecondMoment, ThirdMoment, FourthMoment,
-# UncertainHistogramming exports
-       ContinuousHistogram, GaussianHistogram, 
-       gaussian, construct, construct!, kernel, val_err
+# Generic UncertainHistogramming exports
+       ContinuousHistogram, kernel, val_err, construct, construct!,
+# Specific UncertainHistogramming types
+       GaussianHistogram, UniformHistogram
 
 """
     abstract type ContinuousHistogram end
@@ -104,6 +103,7 @@ Return a `Measurement` with `val` as the [`ContinuousHistogram`](@ref) [`mean`](
 """
 measurement(hist::ContinuousHistogram) = measurement(mean(hist), std(hist))
 
+include("Moments/Moments.jl")
 include("Kernels/GaussianKernel.jl")
 include("Kernels/UniformKernel.jl")
 include("util.jl")
