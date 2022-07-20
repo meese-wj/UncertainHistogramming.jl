@@ -18,6 +18,9 @@ This package provides similar functionality to what is expected from [_kernel de
 
 Currently, the only [`ContinuousHistogram`](@ref)/[`kernel`](@ref) pair are based on [`gaussian`](@ref)s, where each value-error pair are the mean and standard deviation of that [`gaussian`](@ref). In the future I plan to implement a couple of other subtypes of [`ContinuousHistogram`](@ref)s, but for right now, everything is _normal_. :-P
 
+!!! note
+    A [`ContinuousHistogram`](@ref) is _continuous_ in the sense of its _domain_. This is admittedly a bit confusion, but the discretization that occurs in a regular histogram comes from its _bins_, or its domain, _not_ its _range_. Of course, the range, or vertical values, are jumpy, but that is because of the discrete nature of the regular histogram. Most [kernel functions](https://en.wikipedia.org/wiki/Kernel_density_estimation?oldformat=true#Definition) that exist are at least piecewise continuous in their _range_, which is the same standard we take here.
+
 ## Example Usage
 
 An example `GaussianHistogram <: ContinuousHistogram` can be `construct`ed from the following Julia code for a simple `Vector` of value-error `Tuple`s.
