@@ -49,7 +49,7 @@ hist = GaussianHistogram()
 push!(hist, values_errors)
 ```
 
-Note that the non-central statistical moments are updated in an _online_ matter. This means that, aside from the overhead associated with [`push!`](@ref)ing two elements into the [`GaussianHistogram`](@ref)'s `values` and `errors` `Vectors`, there is an amortized cost associated with computing the statistics.
+Note that the non-central statistical [`moment`](@ref)s are updated in an _online_ matter. This means that, aside from the overhead associated with [`push!`](@ref)ing two elements into the [`GaussianHistogram`](@ref)'s `values` and `errors` `Vectors`, there is an amortized cost associated with computing the statistics.
 
 From here, we just need to define an input domain for the [`GaussianHistogram`](@ref) to be computed over as
 
