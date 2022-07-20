@@ -1,59 +1,60 @@
-"""
-    GaussianDistribution <: ContinuousDistribution
 
-Trait representing a Gaussian distribution.
 """
-struct GaussianDistribution <: ContinuousDistribution end
+    UniformDistribution <: ContinuousDistribution
+
+Trait representing a uniform distribution.
+"""
+struct UniformDistribution <: ContinuousDistribution end
 
 @doc raw"""
-    moment(::Type{GaussianDistribution}, FirstMoment, μ, σ)
+    moment(::Type{UniformDistribution}, FirstMoment, val, err)
     
-Analytic expression for the no-central `FirstMoment` from a [`GaussianDistribution`](@ref):
+Analytic expression for the no-central `FirstMoment` from a [`UniformDistribution`](@ref):
 
 ```math
-M_1 = \int_{-\infty}^{\infty} {\rm d}y\, G(y;\mu,\sigma)\cdot y = \mu. 
+M_1 = \int_{-\infty}^{\infty} {\rm d}y\, \mathcal{U}(y; x, \epsilon)\cdot y = x. 
 ```
 """
-moment(::Type{GaussianDistribution}, ::Type{FirstMoment},  μ, σ) = μ 
+moment(::Type{UniformDistribution}, ::Type{FirstMoment},  val, err) = val 
 
 @doc raw"""
-    moment(::Type{GaussianDistribution}, SecondMoment, μ, σ)
+    moment(::Type{UniformDistribution}, SecondMoment, val, err)
     
-Analytic expression for the no-central `SecondMoment` from a [`GaussianDistribution`](@ref):
+Analytic expression for the no-central `SecondMoment` from a [`UniformDistribution`](@ref):
 
 ```math
-M_2 = \int_{-\infty}^{\infty} {\rm d}y\, G(y;\mu,\sigma)\cdot y^2 = \mu^2 + \sigma^2. 
+M_2 = \int_{-\infty}^{\infty} {\rm d}y\, \mathcal{U}(y; x, \epsilon)\cdot y^2 = x^2 + \frac{1}{3}\epsilon^2. 
 ```
 """
-function moment(::Type{GaussianDistribution}, ::Type{SecondMoment}, μ, σ)
-    μ, σ = promote(μ, σ)
-    return μ^2 + σ^2
+function moment(::Type{UniformDistribution}, ::Type{SecondMoment}, val, err)
+    val, err = promote(val, err)
+    return val^2 + (err^2) / 3
 end
 
 @doc raw"""
-    moment(::Type{GaussianDistribution}, ThirdMoment, μ, σ)
+    moment(::Type{UniformDistribution}, ThirdMoment, val, err)
     
-Analytic expression for the no-central `ThirdMoment` from a [`GaussianDistribution`](@ref):
+Analytic expression for the no-central `ThirdMoment` from a [`UniformDistribution`](@ref):
 
 ```math
-M_3 = \int_{-\infty}^{\infty} {\rm d}y\, G(y;\mu,\sigma)\cdot y^3 = \mu^3 + 3\mu\sigma^2. 
+M_3 = \int_{-\infty}^{\infty} {\rm d}y\, \mathcal{U}(y; x, \epsilon)\cdot y^3 = x\left(x^2 + \epsilon^2 \right). 
 ```
 """
-function moment(::Type{GaussianDistribution}, ::Type{ThirdMoment}, μ, σ)
-    μ, σ = promote(μ, σ)
-    return μ^3 + 3 * μ * σ^2
+function moment(::Type{UniformDistribution}, ::Type{ThirdMoment}, val, err)
+    val, err = promote(val, err)
+    return val * (val^2 + err^2)
 end
 
 @doc raw"""
-    moment(::Type{GaussianDistribution}, FourthMoment, μ, σ)
+    moment(::Type{UniformDistribution}, FourthMoment, val, err)
     
-Analytic expression for the no-central `FourthMoment` from a [`GaussianDistribution`](@ref):
+Analytic expression for the no-central `FourthMoment` from a [`UniformDistribution`](@ref):
 
 ```math
-M_4 = \int_{-\infty}^{\infty} {\rm d}y\, G(y;\mu,\sigma)\cdot y^4 = \mu^4 + 6\mu^2\sigma^2 + 3\sigma^4. 
+M_4 = \int_{-\infty}^{\infty} {\rm d}y\, \mathcal{U}(y; x, \epsilon)\cdot y^4 = x^4 + 2x^2\epsilon^2 + \frac{1}{5}\epsilon^4. 
 ```
 """
-function moment(::Type{GaussianDistribution}, ::Type{FourthMoment}, μ, σ)
-    μ, σ = promote(μ, σ)
-    return μ^4 + 6 * μ^2 * σ^2 + 3 * σ^4
+function moment(::Type{UniformDistribution}, ::Type{FourthMoment}, val, err)
+    val, err = promote(val, err)
+    return val^4 + 2 * val^2 * err^2 + (err^4) / 5
 end
