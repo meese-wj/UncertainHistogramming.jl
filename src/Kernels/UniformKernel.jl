@@ -15,6 +15,7 @@ where
 ```math
 \mathcal{U}(y; x_i, \epsilon_i) = \begin{cases}
 \frac{1}{2\epsilon_i}, & y \in (x_i - \epsilon_i, x_i + \epsilon_i)
+\\
 0, & \mathrm{otherwise}
 \end{cases}.
 ```

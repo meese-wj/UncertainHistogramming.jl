@@ -29,6 +29,7 @@ KernelDistribution(hist::ContinuousHistogram) = throw(MethodError(KernelDistribu
 @doc raw"""
     kernel(::ContinuousHistogram, ::AbstractArray, data) -> MethodError
     kernel(::GaussianHistogram, ::AbstractArray, data)
+    kernel(::UniformHistogram, ::AbstractArray, data)
 
 The kernel function ``\mathcal{K}(x)`` used to compute a [`ContinuousHistogram`](@ref) such that
 

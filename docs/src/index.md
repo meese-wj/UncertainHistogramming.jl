@@ -16,14 +16,34 @@ For me, the need for this package first came about when I was running Monte Carl
 
 This package provides similar functionality to what is expected from [_kernel density estimation_ (KDE)](https://en.wikipedia.org/wiki/Kernel_density_estimation?oldformat=true), but here the data errors/uncertainties which act as the kernel bandwidths are all, in principle, different.
 
-Currently, the only [`ContinuousHistogram`](@ref)/[`kernel`](@ref) pair are based on [`gaussian`](@ref)s, where each value-error pair are the mean and standard deviation of that [`gaussian`](@ref). In the future I plan to implement a couple of other subtypes of [`ContinuousHistogram`](@ref)s, but for right now, everything is _normal_. :-P
-
 !!! note
     A [`ContinuousHistogram`](@ref) is _continuous_ in the sense of its _domain_. This is admittedly a bit confusion, but the discretization that occurs in a regular histogram comes from its _bins_, or its domain, _not_ its _range_. Of course, the range, or vertical values, are jumpy, but that is because of the discrete nature of the regular histogram. Most [kernel functions](https://en.wikipedia.org/wiki/Kernel_density_estimation?oldformat=true#Definition) that exist are at least piecewise continuous in their _range_, which is the same standard we take here.
 
+### Available [`ContinuousHistogram`](@ref)s
+
+We currently offer the following [`ContinuousHistogram`](@ref)s which implement their designated [`KernelDistribution`](@ref) and [`kernel`](@ref) functions:
+
+* The [`GaussianHistogram`](@ref) built on [`GaussianDistribution`](@ref)s
+
+```math
+G(y; \mu_i, \sigma_i) = \frac{ \exp\left[ -\frac{ \left( y - \mu_i \right)^2 }{2 \sigma_i^2} \right] }{ \sigma_i \sqrt{2\pi}}.
+```
+
+* The [`UniformHistogram`](@ref) built on [`UniformDistribution`](@ref)s
+
+```math
+\mathcal{U}(y; x_i, \epsilon_i) = \begin{cases}
+\frac{1}{2\epsilon_i}, & y \in (x_i - \epsilon_i, x_i + \epsilon_i)
+\\
+0, & \mathrm{otherwise}
+\end{cases}.
+```
+
+Each [`ContinuousHistogram`](@ref) are built around value-error pairs. For example, with the [`GaussianHistogram`](@ref), the value-error pair are the mean and standard deviation of that [`gaussian`](@ref).
+
 ## Example Usage
 
-An example `GaussianHistogram <: ContinuousHistogram` can be `construct`ed from the following Julia code for a simple `Vector` of value-error `Tuple`s.
+An example `ContinuousHistogram` can be `construct`ed from the following Julia code for a simple `Vector` of value-error `Tuple`s.
 
 To start, first include the following packages:
 
@@ -45,16 +65,18 @@ values_errors = [(-3.5, 0.5),
 nothing # hide
 ```
 
-From here, we're in the position to initialize a [`GaussianHistogram`](@ref) and [`push!`](@ref) the `values_errors` `Vector` into it.
+From here, we're in the position to initialize both a [`GaussianHistogram`](@ref) `ghist` and a [`UniformHistogram`](@ref) `uhist`, and then [`push!`](@ref) the `values_errors` `Vector` into them.
 
 ```@example usage
-hist = GaussianHistogram()
-push!(hist, values_errors)
+ghist = GaussianHistogram()
+uhist = UniformHistogram()
+push!(ghist, values_errors)
+push!(uhist, values_errors)
 ```
 
-Note that the non-central statistical [`moment`](@ref)s are updated in an _online_ matter. This means that, aside from the overhead associated with [`push!`](@ref)ing two elements into the [`GaussianHistogram`](@ref)'s `values` and `errors` `Vectors`, there is an amortized cost associated with computing the statistics.
+Note that the non-central statistical [`moment`](@ref)s are updated in an _online_ matter. This means that, aside from the overhead associated with [`push!`](@ref)ing two elements into the [`ContinuousHistogram`](@ref)'s `values` and `errors` `Vectors`, there is an amortized cost associated with computing the statistics.
 
-From here, we just need to define an input domain for the [`GaussianHistogram`](@ref) to be computed over as
+From here, we just need to define an input domain for the [`ContinuousHistogram`](@ref)s to be computed over as
 
 ```@example usage
 x = LinRange(-6, 6, 3000)
@@ -63,10 +85,16 @@ x = LinRange(-6, 6, 3000)
 and then, with the help of [`Plots.jl`](https://docs.juliaplots.org/stable/) and [`RecipesBase.jl`](https://juliaplots.org/RecipesBase.jl/stable/), we have
 
 ```@example usage
-plot(x, hist)
+plot( plot(x, ghist; title = "\$ \\mathtt{GaussianHistogram}ming \$"), 
+      plot(x, uhist; title = "\$ \\mathtt{UniformHistogram}ming \$"); 
+      size = (800, 600), 
+      layout = (1, 2), 
+      link = :both )
 ```
 
-In the plot, one can see that the [`GaussianHistogram`](@ref) is plotted as the solid blue curve, and the individual [`gaussian`](@ref) [`kernel`](@ref)s that make it up are plotted as the dashed orange curves.
+In the left plot, one can see that the [`GaussianHistogram`](@ref) is plotted as the solid blue curve, and the individual [`gaussian`](@ref) [`kernel`](@ref)s that make it up are plotted as the dashed orange curves. The right plot shows the same set of curves defined by the [`UniformDistribution`](@ref), instead. (The orange curves are only zero within their visible range; otherwise they are hidden by the solid blue curve.) 
+
+I want to remark here that with the power of [Julia's](https://docs.julialang.org/en/v1/manual/methods/) [multiple dispatch](https://en.wikipedia.org/wiki/Multiple_dispatch?oldformat=true), once one properly defines the interface for a new type of [`ContinuousHistogram`](@ref), the plotting functionality, along with the utilities and statistics, _just work_.
 
 !!! note
     One may also supply the keyword argument `nkernels` to `plot(x, hist)` to change the number of
