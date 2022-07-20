@@ -50,55 +50,6 @@ through the subscript ``i``.
     By default, we `MethodError` out for any `<: ContinuousHistogram` until its directly implemented.
 """
 kernel(hist::ContinuousHistogram, args...) = throw( MethodError(kernel, args...) )
-# construct(hist::ContinuousHistogram, x) = throw( MethodError(construct, hist, x) )
-# construct!(output, hist::ContinuousHistogram, x) = throw( MethodError(construct!, output, hist, x) )
-
-
-@doc raw"""
-    GaussianHistogram{T <: Number} <: ContinuousHistogram
-
-A [`ContinuousHistogram`](@ref) with a Gaussian kernel for each value-error pair.
-
-This [`ContinuousHistogram`] is formed by summing Gaussian kernels for each ``(\mu_i, \sigma_i)`` as
-
-```math
-\mathcal{H}(y) = \frac{1}{M} \sum_{i = 1}^M \frac{ \exp\left[ -\frac{ \left( y - \mu_i \right)^2 }{2 \sigma_i^2} \right] }{ \sigma_i \sqrt{2\pi}}.
-```
-
-This expression makes the calculation of the non-central moments a simple mean of the 
-individual non-central moments.
-
-# Contents
-- `moments::Vector{T}`: a collection of moments for the `GaussianHistogram` which are updated in an _online_ fashion
-- `values::Vector{T}`: the values used to [`construct`](@ref) the `GaussianHistogram`
-- `errors::Vector{T}`: the errors used to [`construct`](@ref) the `GaussianHistogram`
-
-!!! note
-    The statistics come from calculations involving the `moments`. The `values` and 
-    `errors` are necessarily stored for visualization purposes.
-"""
-mutable struct GaussianHistogram{T <: Number} <: ContinuousHistogram
-    moments::Vector{T}
-    values::Vector{T}
-    errors::Vector{T}
-
-    GaussianHistogram{T}() where {T} = ( temp = @MArray zeros(T, 4); new( temp, zeros(T, 0), zeros(T, 0) ) )
-    GaussianHistogram(args...) = GaussianHistogram{Float64}(args...)
-end
-
-include("util.jl")
-include("stats.jl")
-include("plotrecipes.jl")
-
-"""
-    gaussian(::Number, μ, σ)
-    gaussian(::AbstractArray, μ, σ)
-
-Calculate the normalized value of a Gaussian with mean μ and variance σ².
-"""
-gaussian(x::Number, μ, σ) = exp( -0.5 * (x - μ)^2 / σ^2 ) / ( σ * sqrt(2π) )
-gaussian(x::AbstractArray, μ, σ) = broadcast( y -> gaussian(y, μ, σ), x )
-kernel(hist::GaussianHistogram, x::AbstractArray, data) where {T} = gaussian(x, data...) / length(hist)
 
 """
     val_err(::ContinuousHistogram, idx)
@@ -132,12 +83,23 @@ function construct(hist::ContinuousHistogram, x)
 end
 
 """
-    measurement(::GaussianHistogram)
+    measurement(::ContinuousHistogram)
 
 Interface to [`Measurements.jl`](https://juliaphysics.github.io/Measurements.jl/stable/). 
-Return a `Measurement` with `val` as the [`GaussianHistogram`](@ref) [`mean`](@ref) and the 
-`err` as the [`GaussianHistogram`](@ref) [`std`](@ref) (standard deviation).
+Return a `Measurement` with `val` as the [`ContinuousHistogram`](@ref) [`mean`](@ref) and the 
+`err` as the [`ContinuousHistogram`](@ref) [`std`](@ref) (standard deviation).
+
+!!! warning
+    If the [`ContinuousHistogram`](@ref) in question is severely non-Gaussian, the first 
+    two statistical [cumulants](https://en.wikipedia.org/wiki/Cumulant?oldformat=true) may
+    be insufficient to appropriately describe the underlying distribution. In this sense, 
+    a `measurement = value ± error` may not make sense to describe one's data.
 """
-measurement(hist::GaussianHistogram) = measurement(mean(hist), std(hist))
+measurement(hist::ContinuousHistogram) = measurement(mean(hist), std(hist))
+
+include("Kernels/GaussianKernel.jl")
+include("util.jl")
+include("stats.jl")
+include("plotrecipes.jl")
 
 end
