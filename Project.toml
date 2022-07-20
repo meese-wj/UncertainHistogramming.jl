@@ -1,7 +1,7 @@
 name = "UncertainHistogramming"
 uuid = "f2e1246a-0df0-4dad-8180-3a93ed78f8cd"
 authors = ["W. Joe Meese <meese022@umn.edu> and contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
