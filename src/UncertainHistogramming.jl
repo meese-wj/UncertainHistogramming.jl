@@ -29,6 +29,13 @@ export
 histograms whose input data have _uncertainty_ associated with them, and therefore
 we build them using a value-error-dependent kernel for each entry.
 
+For each new `ContinuousHistogram`, one _must_ overload the [`eltype`](@ref) function
+for it, as well as the functions given in each of the `src/Kernels` folder. Then one 
+needs to add a new [`ContinuousDistribution`](@ref) and define its methods, like those shown
+in the `src/Moments` files.
+    
+All other `util`ity and `stats` functionality should _just work_.
+
 !!! note
     In this context, _continuity_ refers to the domain of the histogram, and not necessarily its range.
 """
@@ -49,7 +56,7 @@ through the subscript ``i``.
 !!! note
     By default, we `MethodError` out for any `<: ContinuousHistogram` until its directly implemented.
 """
-kernel(hist::ContinuousHistogram, args...) = throw( MethodError(kernel, args...) )
+kernel(hist::ContinuousHistogram, args...) = throw( MethodError(kernel, hist, args...) )
 
 """
     val_err(::ContinuousHistogram, idx)
