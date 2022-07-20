@@ -1,45 +1,54 @@
 
 """
-    eltype(::GaussianHistogram{T}) where {T} = Test
+    eltype(::ContinuousHistogram)
 
 `Base` overload for accessing the `eltype.`
-"""
-eltype(::GaussianHistogram{T}) where {T} = T
-"""
-    length(::GaussianHistogram)
 
-`Base` overload to return the `length` of the `values` `Vector` in the argument [`GaussianHistogram`](@ref).
+```jldoctest
+julia> eltype(GaussianHistogram())
+Float64
+
+julia> eltype(UniformHistogram{Float32}())
+Float32
+```
 """
-length(hist::GaussianHistogram) = length(hist.values)
+eltype(hist::ContinuousHistogram) = ( tp = typeof(hist); isempty(tp.parameters) ? tp : tp.parameters[1] )
 
 """
-    push!(::GaussianHistogram, ::Tuple{Number, Number})
-    push!(::GaussianHistogram, ::Measurement)
-    push!(::GaussianHistogram, ::AbstractVector)
-    push!(::GaussianHistogram, ::Vector{Measurement})
+    length(::ContinuousHistogram)
 
-`Base` overload to introduce a new value-error pair into the [`GaussianHistogram`](@ref).
+`Base` overload to return the `length` of the `values` `Vector` in the argument [`ContinuousHistogram`](@ref).
+"""
+length(hist::ContinuousHistogram) = length(hist.values)
+
+"""
+    push!(::ContinuousHistogram, ::Tuple{Number, Number})
+    push!(::ContinuousHistogram, ::Measurement)
+    push!(::ContinuousHistogram, ::AbstractVector)
+    push!(::ContinuousHistogram, ::Vector{Measurement})
+
+`Base` overload to introduce a new value-error pair into the [`ContinuousHistogram`](@ref).
 This function also [`_update_moments!`](@ref) in an amortized way to add little overhead.
 
 !!! note
     The `AbstractVector` dispatch is really only meant for `Vector{Tuple{Number, Number}}`; 
     the latter of which contains no subtypes.
 """
-function push!( hist::GaussianHistogram, tup::Tuple{Number, Number} )
+function push!( hist::ContinuousHistogram, tup::Tuple{Number, Number} )
     _update_moments!(hist, tup...)
     push!(hist.values, tup[1])
     push!(hist.errors, tup[2])
     return hist
 end
-push!(hist::GaussianHistogram, meas::Measurement) = push!(hist, (meas.val, meas.err))
+push!(hist::ContinuousHistogram, meas::Measurement) = push!(hist, (meas.val, meas.err))
 
-function push!(hist::GaussianHistogram, tup_vec::AbstractVector)
+function push!(hist::ContinuousHistogram, tup_vec::AbstractVector)
     for tup ∈ tup_vec
         push!(hist, tup)
     end
     return hist
 end
-function push!(hist::GaussianHistogram, meas_vec::Vector{Measurement})
+function push!(hist::ContinuousHistogram, meas_vec::Vector{Measurement})
     for meas ∈ meas_vec
         push!(hist, meas)
     end
@@ -47,7 +56,7 @@ function push!(hist::GaussianHistogram, meas_vec::Vector{Measurement})
 end
 
 @doc """
-    getindex(::GaussianHistogram, ::Type{<: Moment})
+    getindex(::ContinuousHistogram, ::Type{<: Moment})
 
 Convenience function to access a given [`Moment`](@ref) from its name.
 
@@ -81,12 +90,12 @@ julia> hist[FourthMoment]
 getindex
 
 @doc """
-    setindex!(::GaussianHistogram{T}, val::S, ::Type{<: Moment}) where {T, S}
+    setindex!(::ContinuousHistogram, val, ::Type{<: Moment})
 
-Convenience function for accessing the [`GaussianHistogram`](@ref) [`Moment`](@ref)s from their name.
+Convenience function for accessing the [`ContinuousHistogram`](@ref) [`Moment`](@ref)s from their name.
     
 !!! warning
-    This functionality should only be used internally as modifying the [`GaussianHistogram`](@ref)
+    This functionality should only be used internally as modifying the [`ContinuousHistogram`](@ref)
     `moments` directly would invalidate the [`push!`](@ref) pipeline and ultimately the statistics.
     
     But it's here if you need it for some `dev` reason.
@@ -94,9 +103,9 @@ Convenience function for accessing the [`GaussianHistogram`](@ref) [`Moment`](@r
 setindex!
 
 @doc """
-    moment(::GaussianHistogram, ::Type{<: Moment})
+    moment(::ContinuousHistogram, ::Type{<: Moment})
 
-Convenience wrapper to return a [`Moment`](@ref) from a [`GaussianHistogram`](@ref) 
+Convenience wrapper to return a [`Moment`](@ref) from a [`ContinuousHistogram`](@ref) 
 by that [`Moment`](@ref)'s name.
 
 ```jldoctest
@@ -129,19 +138,19 @@ julia> moment(hist, FourthMoment)
 moment
 
 for moment_t ∈ moment_list
-    @eval Base.getindex(hist::GaussianHistogram, ::Type{$moment_t}) = hist.moments[ MomentIndex($moment_t) ]
-    @eval Base.setindex!(hist::GaussianHistogram{T}, val::S, ::Type{$moment_t}) where {T, S} = hist.moments[ MomentIndex($moment_t) ] = convert(T, val)
-    @eval moment(hist::GaussianHistogram, ::Type{$moment_t}) = hist[$moment_t]
+    @eval Base.getindex(hist::ContinuousHistogram, ::Type{$moment_t}) = hist.moments[ MomentIndex($moment_t) ]
+    @eval Base.setindex!(hist::ContinuousHistogram, val, ::Type{$moment_t}) = hist.moments[ MomentIndex($moment_t) ] = convert(eltype(hist), val)
+    @eval moment(hist::ContinuousHistogram, ::Type{$moment_t}) = hist[$moment_t]
 end
 
 """
-    show([::IO = stdout], ::GaussianHistogram)
-    show(::GaussianHistogram)
+    show([::IO = stdout], ::ContinuousHistogram)
+    show(::ContinuousHistogram)
 
-`print` the relevant information for a [`GaussianHistogram`](@ref).
+`print` the relevant information for a [`ContinuousHistogram`](@ref).
 """
-function show(io::IO, hist::GaussianHistogram)
-    println(io, "GaussianHistogram{$(eltype(hist))}:")
+function show(io::IO, hist::ContinuousHistogram)
+    println(io, "$(typeof(hist)):")
     println(io, "  length  = $(length(hist))")
     momstring = ""
     for mom ∈ hist.moments momstring *= "$mom  " end
@@ -153,4 +162,4 @@ function show(io::IO, hist::GaussianHistogram)
     println(io, "    skewness    = $(skewness(hist))")
     println(io, "    kurtosis    = $(kurtosis(hist))")
 end
-show(hist::GaussianHistogram) = show(stdout, hist)
+show(hist::ContinuousHistogram) = show(stdout, hist)
