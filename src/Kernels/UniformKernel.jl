@@ -40,6 +40,8 @@ mutable struct UniformHistogram{T <: Number} <: ContinuousHistogram
     UniformHistogram(args...) = UniformHistogram{Float64}(args...)
 end
 
+KernelDistribution(::UniformHistogram) = UniformDistribution
+
 """
     uniform_function(::Number, μ, σ)
     uniform_function(::AbstractArray, μ, σ)

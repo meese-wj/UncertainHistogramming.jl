@@ -1,15 +1,18 @@
 
 """
-    eltype(::GaussianHistogram{T}) where {T} = T
-    eltype(::UniformHistogram{T}) where {T} = T
+    eltype(::ContinuousHistogram)
 
 `Base` overload for accessing the `eltype.`
 
-!!! note
-    One must overload this `util` function for all new [`ContinuousHistogram`] types.
+```jldoctest
+julia> eltype(GaussianHistogram())
+Float64
+
+julia> eltype(UniformHistogram{Float32}())
+Float32
+```
 """
-eltype(::GaussianHistogram{T}) where {T} = T
-eltype(::UniformHistogram{T}) where {T} = T
+eltype(hist::ContinuousHistogram) = ( tp = typeof(hist); isempty(tp.parameters) ? tp : tp.parameters[1] )
 
 """
     length(::ContinuousHistogram)

@@ -71,7 +71,8 @@ Update the [`ContinuousHistogram`](@ref)'s `moment_t` using an [`_online_mean`](
 with the inclusion of the value-error pair `(val, err)`.
 """
 @inline function _update_moment!(hist::ContinuousHistogram, moment_t, val, err) 
-    hist[moment_t] = _online_mean( moment(GaussianDistribution, moment_t, val, err), moment(hist, moment_t), length(hist) )
+    hist[moment_t] = _online_mean( moment(KernelDistribution(hist), moment_t, val, err), 
+                                   moment(hist, moment_t), length(hist) )
     return nothing
 end
 

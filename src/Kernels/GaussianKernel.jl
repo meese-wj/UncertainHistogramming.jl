@@ -37,6 +37,8 @@ mutable struct GaussianHistogram{T <: Number} <: ContinuousHistogram
     GaussianHistogram(args...) = GaussianHistogram{Float64}(args...)
 end
 
+KernelDistribution(::GaussianHistogram) = GaussianDistribution
+
 """
     gaussian(::Number, μ, σ)
     gaussian(::AbstractArray, μ, σ)

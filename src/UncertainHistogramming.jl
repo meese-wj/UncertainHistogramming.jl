@@ -28,17 +28,27 @@ export
 histograms whose input data have _uncertainty_ associated with them, and therefore
 we build them using a value-error-dependent kernel for each entry.
 
-For each new `ContinuousHistogram`, one _must_ overload the [`eltype`](@ref) function
-for it, as well as the functions given in each of the `src/Kernels` folder. Then one 
+For each new `ContinuousHistogram`, one _must_ overload the functions given in each of the `src/Kernels` folder. Then one 
 needs to add a new [`ContinuousDistribution`](@ref) and define its methods, like those shown
-in the `src/Moments` files.
+in the `src/Moments` files. Finally, the [`KernelDistribution`](@ref) must be mapped.
     
-All other `util`ity and `stats` functionality should _just work_.
+Then all `util`ity and `stats` functionality should _just work_.
 
 !!! note
     In this context, _continuity_ refers to the domain of the histogram, and not necessarily its range.
 """
 abstract type ContinuousHistogram end
+
+"""
+    KernelDistribution(::ContinuousHistogram) -> MethodError
+    KernelDistribution(::GaussianHistogram)   -> GaussianDistribution
+    KernelDistribution(::UniformHistogram)    -> UniformDistribution
+
+Interface function that assigns a [`ContinuousHistogram`](@ref) `Type` to 
+a specific kernel distribution.
+"""
+KernelDistribution(hist::ContinuousHistogram) = throw(MethodError(KernelDistribution, hist))
+
 @doc raw"""
     kernel(::ContinuousHistogram, ::AbstractArray, data) -> MethodError
     kernel(::GaussianHistogram, ::AbstractArray, data)
