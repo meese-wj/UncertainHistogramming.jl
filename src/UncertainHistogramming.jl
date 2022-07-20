@@ -98,6 +98,7 @@ Return a `Measurement` with `val` as the [`ContinuousHistogram`](@ref) [`mean`](
 measurement(hist::ContinuousHistogram) = measurement(mean(hist), std(hist))
 
 include("Kernels/GaussianKernel.jl")
+include("Kernels/UniformKernel.jl")
 include("util.jl")
 include("stats.jl")
 include("plotrecipes.jl")
