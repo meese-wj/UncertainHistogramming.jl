@@ -50,8 +50,8 @@ through the subscript ``i``.
     By default, we `MethodError` out for any `<: ContinuousHistogram` until its directly implemented.
 """
 kernel(hist::ContinuousHistogram, args...) = throw( MethodError(kernel, args...) )
-construct(hist::ContinuousHistogram, x) = throw( MethodError(construct, hist, x) )
-construct!(output, hist::ContinuousHistogram, x) = throw( MethodError(construct!, output, hist, x) )
+# construct(hist::ContinuousHistogram, x) = throw( MethodError(construct, hist, x) )
+# construct!(output, hist::ContinuousHistogram, x) = throw( MethodError(construct!, output, hist, x) )
 
 
 @doc raw"""
@@ -101,34 +101,32 @@ gaussian(x::AbstractArray, μ, σ) = broadcast( y -> gaussian(y, μ, σ), x )
 kernel(hist::GaussianHistogram, x::AbstractArray, data) where {T} = gaussian(x, data...) / length(hist)
 
 """
-    val_err(::GaussianHistogram, idx)
+    val_err(::ContinuousHistogram, idx)
 
 Return a `(value, error)`-`Tuple`.
 """
-val_err(hist::GaussianHistogram, idx) = (hist.values[idx], hist.errors[idx])
+val_err(hist::ContinuousHistogram, idx) = (hist.values[idx], hist.errors[idx])
 
 """
-    construct!(output, ::GaussianHistogram, x)
+    construct!(output, ::ContinuousHistogram, x)
 
 Similar to [`construct`](@ref) but here, the `output` `Array` is modified in-place.
 """
-function construct!(output, hist::GaussianHistogram, x)
-    # TODO: I think I can define this just for a ContinuousHistogram only as long as 
-    #       I demand each ContinuousHistogram has a val_err method.
+function construct!(output, hist::ContinuousHistogram, x)
     size(x) == size(output) ? nothing : ArgumentError("input and output vectors are of different sizes: $(size(x)) != $(size(output))")
-    for (μ, σ) ∈ zip(hist.values, hist.errors)
-        @views output .+= kernel(hist, x, (μ, σ))
+    for idx ∈ 1:length(hist)
+        @views output .+= kernel(hist, x, val_err(hist, idx))
     end
     return output
 end
 
 """
-    construct(::GaussianHistogram, x)
+    construct(::ContinuousHistogram, x)
 
-Map the values of `x` through the [`GaussianHistogram`] and return an
+Map the values of `x` through the [`ContinuousHistogram`] and return an
 `Array` of the same `size` as `x`.
 """
-function construct(hist::GaussianHistogram, x)
+function construct(hist::ContinuousHistogram, x)
     output = zeros(size(x))
     construct!(output, hist, x)
 end
