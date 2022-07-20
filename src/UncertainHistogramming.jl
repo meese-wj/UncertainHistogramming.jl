@@ -7,7 +7,7 @@ import StatsBase: skewness, kurtosis
 import Measurements: Measurement, measurement
 using RecipesBase
 
-include("Moments.jl")
+include("Moments/Moments.jl")
 
 export 
 # Base overloads in ./util.jl
@@ -28,6 +28,9 @@ export
 `abstract type` representing the `ContinuousHistogram` concept. These are
 histograms whose input data have _uncertainty_ associated with them, and therefore
 we build them using a value-error-dependent kernel for each entry.
+
+!!! note
+    In this context, _continuity_ refers to the domain of the histogram, and not necessarily its range.
 """
 abstract type ContinuousHistogram end
 @doc raw"""
