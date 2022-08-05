@@ -71,6 +71,9 @@ From here, we're in the position to initialize both a [`GaussianHistogram`](@ref
 ghist = GaussianHistogram()
 uhist = UniformHistogram()
 push!(ghist, values_errors)
+```
+
+```@example usage
 push!(uhist, values_errors)
 ```
 
@@ -100,7 +103,7 @@ I want to remark here that with the power of [Julia's](https://docs.julialang.or
     One may also supply the keyword argument `nkernels` to `plot(x, hist)` to change the number of
     [`kernel`](@ref)s displayed. By default, `nkernels == 5`. 
     
-    If the number of value-error pairs exceeds `nkernels`, that is `nkernels < length(hist)`, then no [`kernel`](@ref)s will be shown to save the end user from trying to understand and overly busy plot.
+    If the number of value-error pairs exceeds `nkernels`, that is `nkernels < length(hist)`, then no [`kernel`](@ref)s will be shown to save the end user from trying to understand an overly busy plot.
 
 
 
